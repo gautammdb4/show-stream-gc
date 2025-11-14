@@ -1,6 +1,5 @@
 package com.showstream.userservice.entity;
 
-import com.showstream.userservice.util.RoleName;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,6 +25,11 @@ public class User {
 
     @Column(unique = true,nullable = false)
     private String userName;
+
+    @Column(nullable = false)
+    private String firstName ;
+    @Column
+    private String lastName ;
 
     @Column(unique = true,nullable = false)
     private String email;
