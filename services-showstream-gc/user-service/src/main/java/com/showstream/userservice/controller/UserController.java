@@ -27,6 +27,7 @@ public class UserController {
 
     private UserService userService;
 
+    // register user details
     @PostMapping("/user")
     public ResponseEntity<UserResponseDTO> createUser(
             @RequestBody @Valid  UserRequestDTO userDetails) throws Exception {
@@ -34,10 +35,20 @@ public class UserController {
         return ResponseEntity.ok(userService.registerUser(userDetails));
     }
 
+    // fetch all user details
     @GetMapping("/users")
     public ResponseEntity<List<UserResponseDTO>> getUserDetails()  {
         return ResponseEntity.ok(userService.getAllusers());
     }
+
+    //login user
+    @PostMapping("/auth/login")
+    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest user) {
+        return ResponseEntity.ok(userService.login(user));
+    }
+
+    //fetch user details by userId or email
+
 
     @GetMapping("/status")
     public ResponseEntity<String> status()
@@ -52,8 +63,5 @@ public class UserController {
         return ResponseEntity.ok(userService.addingRole(role));
     }
 
-    @PostMapping("/auth/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest user) {
-        return ResponseEntity.ok(userService.login(user));
-    }
+
 }

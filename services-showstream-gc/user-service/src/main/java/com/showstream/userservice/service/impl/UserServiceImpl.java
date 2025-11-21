@@ -38,6 +38,8 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authManager ;
     private final JwtTokenUtil jwtTokenUtil;
+
+
     /**
      * Registers a new user, validates for duplicates, and resolves roles.
      * The custom exceptions thrown here are caught by the GlobalExceptionHandler.
@@ -47,9 +49,10 @@ public class UserServiceImpl implements UserService {
     public UserResponseDTO registerUser(UserRequestDTO requestDto) {
 
         // check user is duplicate
-        if (userRepository.findByUserName(requestDto.getUserName()).isPresent()) {
-            throw new UserAlreadyExistsException(requestDto.getUserName());
+        if (userRepository.findByUserId(requestDto.getUserId()).isPresent()) {
+            throw new UserAlreadyExistsException(requestDto.getUserId());
         }
+
         if (userRepository.findByEmail(requestDto.getEmail()).isPresent()) {
             throw new UserAlreadyExistsException(requestDto.getEmail());
         }
@@ -77,13 +80,19 @@ public class UserServiceImpl implements UserService {
 
         //Create and Encode Password
         User user = User.builder()
-                .userName(requestDto.getUserName())
                 .firstName(requestDto.getFirstName())
                 .lastName(requestDto.getLastName())
+                .userId(requestDto.getUserId())
                 .email(requestDto.getEmail())
+                .phoneNum(requestDto.getPhoneNumber())
+                .dateOfBirth(requestDto.getDateOfBirth())
+                .isActive(requestDto.getIsActive())
                 .password(passwordEncoder.encode(requestDto.getPassword()))
                 .roles(roles)
                 .build();
+
+        user.setCreatedBy(requestDto.getCreatedBy());
+        user.setUpdatedBy(requestDto.getUpdatedBy());
 
         // 4. Save to DB
         User savedUser = userRepository.save(user);
@@ -99,32 +108,36 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDTO getUserDetails(String userName) throws Exception {
+    public UserResponseDTO getUserDetails(String email) throws Exception {
 
-        Optional<User> user = userRepository.findByUserName(userName);
+        Optional<User> user = userRepository.findByEmail(email);
 
         if (!user.isPresent()) {
-            throw new Exception("User not found "+userName);
+            throw new Exception("User not found "+email);
         }
-        return UserResponseDTO.builder()
-                .email(user.get().getEmail())
-                .userName(user.get().getUserName())
-                .roles(user.get().getRoles().stream()
-                        .map(role -> role.getRoleName().toString()).collect(Collectors.toSet())
-                )
-                .build();
+        return new UserResponseDTO(user.get());
+    }
+
+    @Override
+    public UserResponseDTO getUserDetailsByUserID(String userID) {
+        Optional<User> user = userRepository.findByUserId(userID);
+
+        if (!user.isPresent()) {
+            throw new UsernameNotFoundException("User not found "+userID);
+        }
+        return new UserResponseDTO(user.get());
     }
 
     public AuthResponse login(AuthRequest user)
     {
         Authentication authentication =
-                authManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUserName() , user.getPassword()));
+                authManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail() , user.getPassword()));
 
         if(!authentication.isAuthenticated())
             throw  new UsernameNotFoundException("Invalid Credential") ;
         else
         {
-            String token = jwtTokenUtil.generateToken(user.getUserName());
+            String token = jwtTokenUtil.generateToken(user.getEmail());
             return AuthResponse.builder()
                     .jwt(token)
                     .build();
@@ -136,19 +149,9 @@ public class UserServiceImpl implements UserService {
         List<User> allUser = userRepository.findAll();
 
         List<UserResponseDTO> res = allUser.stream()
-                .map(user -> UserResponseDTO.builder()
-                        .id(user.getId())
-                        .firstName(user.getFirstName())
-                        .lastName(user.getLastName())
-                        .userName(user.getUserName())
-                        .email(user.getEmail())
-                         .roles(
-                                 user.getRoles().stream()
-                                         .map(role ->
-                                                 role.getRoleName().toString()).collect(Collectors.toSet())
-                                )
-                        .build())
+                .map(user -> new UserResponseDTO(user))
                 .collect(Collectors.toList());
+
         return res;
     }
 

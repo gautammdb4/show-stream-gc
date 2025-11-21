@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -17,24 +18,31 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
+public class User extends BaseEntity{
 
     @Id
     @UuidGenerator
     private UUID id;
-
-    @Column(unique = true,nullable = false)
-    private String userName;
 
     @Column(nullable = false)
     private String firstName ;
     @Column
     private String lastName ;
 
+    @Column(unique = true)
+    private String userId;
+
     @Column(unique = true,nullable = false)
     private String email;
 
     private  String password;
+
+    @Column
+    private String phoneNum;
+
+    @Column( name = "date_of_birth")
+    private LocalDate dateOfBirth;
+
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -43,4 +51,7 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role>  roles = new HashSet<>();
+
+    @Column
+    private Boolean isActive;
 }

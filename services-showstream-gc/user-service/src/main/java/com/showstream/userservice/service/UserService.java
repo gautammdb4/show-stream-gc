@@ -12,7 +12,8 @@ public interface UserService {
 
     UserResponseDTO registerUser(UserRequestDTO requestDto) throws Exception;
     Role addingRole(String role) ;
-    UserResponseDTO getUserDetails(String userName) throws Exception;
+    UserResponseDTO getUserDetails(String email) throws Exception;
+    UserResponseDTO getUserDetailsByUserID(String userID) ;
     AuthResponse login(AuthRequest user);
     List<UserResponseDTO> getAllusers();
 }

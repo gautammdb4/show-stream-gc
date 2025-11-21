@@ -13,7 +13,6 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User , UUID> {
     @Override
     Optional<User> findById(UUID uuid);
-    Optional<User> findByUserName(String userName) ;
-
-    Optional<Object> findByEmail(@NotBlank(message = "Email is required") @Email(message = "Email should be valid") String email);
+    Optional<User> findByUserId(String userId) ;
+    Optional<User> findByEmail(@NotBlank(message = "Email is required") @Email(message = "Email should be valid") String email);
 }
