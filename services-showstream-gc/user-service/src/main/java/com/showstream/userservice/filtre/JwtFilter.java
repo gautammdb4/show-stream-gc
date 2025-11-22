@@ -51,18 +51,9 @@ public class JwtFilter  extends OncePerRequestFilter {
         final String authorizationHeader = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (Token.isBearerToken(authorizationHeader)) {
-
             final String jwt = Token.getJwt(authorizationHeader);
-
-            tokenService.verifyAndValidate(jwt);
-
-            final String tokenId = tokenService.getId(jwt);
-
-//            invalidTokenService.checkForInvalidityOfToken(tokenId);
-
             final UsernamePasswordAuthenticationToken authentication = tokenService
                     .getAuthentication(jwt);
-
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
         }
@@ -70,5 +61,12 @@ public class JwtFilter  extends OncePerRequestFilter {
         filterChain.doFilter(httpServletRequest,httpServletResponse);
 
     }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return path.contains("/validate-token");
+    }
+
 
 }

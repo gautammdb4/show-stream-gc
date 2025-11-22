@@ -59,6 +59,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(request ->
                request.requestMatchers("/v1/api/users/register",
                                "/v1/api/users/status",
+                               "/v1/api/users/validate-token",
                                "/v1/api/users/login").permitAll()
                         .anyRequest().authenticated()) ;
         http.formLogin(Customizer.withDefaults()) ; // for getting default user form
@@ -69,9 +70,6 @@ public class SecurityConfig {
 
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) ;
         http.addFilterBefore(jwtFilter , BearerTokenAuthenticationFilter.class) ;
-
-//         http.addFilterBefore(customBearerTokenAuthenticationFilter, BearerTokenAuthenticationFilter.class);
-
 
         return http.build();
     }
