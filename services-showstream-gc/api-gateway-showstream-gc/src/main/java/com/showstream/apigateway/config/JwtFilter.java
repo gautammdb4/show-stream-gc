@@ -27,12 +27,12 @@ public class JwtFilter extends AbstractGatewayFilterFactory<JwtFilter.Config> {
      * It holds a list of public endpoints that should not be filtered.
      */
     public static class Config {
+
         // List of public endpoints that should not be filtered
         private List<String> publicEndpoints;
 
         /**
          * Gets the list of public endpoints.
-         *
          * @return the list of public endpoints
          */
         public List<String> getPublicEndpoints() {
@@ -41,7 +41,6 @@ public class JwtFilter extends AbstractGatewayFilterFactory<JwtFilter.Config> {
 
         /**
          * Sets the list of public endpoints.
-         *
          * @param publicEndpoints the list of public endpoints to set
          * @return the updated Config object
          */
@@ -54,7 +53,6 @@ public class JwtFilter extends AbstractGatewayFilterFactory<JwtFilter.Config> {
 
     /**
      * Applies the JWT authentication filter to the gateway.
-     *
      * @param config the configuration for the filter
      * @return the gateway filter
      */
@@ -83,7 +81,16 @@ public class JwtFilter extends AbstractGatewayFilterFactory<JwtFilter.Config> {
                             return true;
                         })
                         .subscribeOn(Schedulers.boundedElastic())
-                        .flatMap(valid -> chain.filter(exchange))
+//                        .flatMap(valid -> chain.filter(exchange))
+                        .flatMap(valid -> {
+                            return chain.filter(
+                                    exchange.mutate()
+                                            .request(exchange.getRequest().mutate()
+                                                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt)
+                                                    .build())
+                                            .build()
+                            );
+                        })
                         .onErrorResume(e -> {
                             log.error("Token validation failed for path: {}", path, e);
                             if (e instanceof FeignException.Unauthorized || e instanceof FeignException.Forbidden) {

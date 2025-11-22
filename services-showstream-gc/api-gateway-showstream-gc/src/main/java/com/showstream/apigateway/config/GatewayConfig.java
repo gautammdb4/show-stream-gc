@@ -25,19 +25,20 @@ public class GatewayConfig {
 
     // Define the list of public endpoints
     private static final List<String> PUBLIC_ENDPOINTS = List.of(
-            "/v1/api/auth/login",
-            "/v1/api/status",
-            "/v1/api/user"
+            "/v1/api/users/login",
+            "/v1/api/users/status",
+            "/v1/api/users/register"
     );
 
 
     @Bean
     public RouteLocator routes(RouteLocatorBuilder builder)
     {
-        return builder.routes().route("" , r->r.path("/v1/api/**")
+        return builder.routes()
+                .route("USER-SERVICE" , r->r.path("/v1/api/users/**")
                 .filters(f-> f.filters(jwtFilter.apply(new JwtFilter.Config()
                         .setPublicEndpoints(PUBLIC_ENDPOINTS)))).uri("lb://USER-SERVICE")
-        )
+                )
                 .build();
     }
 }
