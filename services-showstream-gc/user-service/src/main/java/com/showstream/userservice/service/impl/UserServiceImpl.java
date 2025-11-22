@@ -1,7 +1,5 @@
 package com.showstream.userservice.service.impl;
 
-import com.showstream.userservice.dto.AuthRequest;
-import com.showstream.userservice.dto.AuthResponse;
 import com.showstream.userservice.dto.UserRequestDTO;
 import com.showstream.userservice.dto.UserResponseDTO;
 import com.showstream.userservice.entity.Role;
@@ -10,15 +8,11 @@ import com.showstream.userservice.exception.RoleNotFoundException;
 import com.showstream.userservice.exception.UserAlreadyExistsException;
 import com.showstream.userservice.repository.RoleRepository;
 import com.showstream.userservice.repository.UserRepository;
-import com.showstream.userservice.security.JwtTokenUtil;
 import com.showstream.userservice.service.UserService;
-import com.showstream.userservice.util.RoleName;
+import com.showstream.userservice.model.enums.RoleName;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -36,8 +30,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authManager ;
-    private final JwtTokenUtil jwtTokenUtil;
+    private final TokenServiceImpl tokenService;
 
 
     /**
@@ -126,22 +119,6 @@ public class UserServiceImpl implements UserService {
             throw new UsernameNotFoundException("User not found "+userID);
         }
         return new UserResponseDTO(user.get());
-    }
-
-    public AuthResponse login(AuthRequest user)
-    {
-        Authentication authentication =
-                authManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail() , user.getPassword()));
-
-        if(!authentication.isAuthenticated())
-            throw  new UsernameNotFoundException("Invalid Credential") ;
-        else
-        {
-            String token = jwtTokenUtil.generateToken(user.getEmail());
-            return AuthResponse.builder()
-                    .jwt(token)
-                    .build();
-        }
     }
 
     @Override

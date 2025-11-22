@@ -1,27 +1,34 @@
-package com.showstream.userservice.security;
+package com.showstream.userservice.config;
 
+import com.showstream.userservice.security.CustomAuthenticationEntryPoint;
+import com.showstream.userservice.filtre.JwtFilter;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 @AllArgsConstructor
+@EnableMethodSecurity
 public class SecurityConfig {
 
     /**
@@ -33,9 +40,6 @@ public class SecurityConfig {
      * * @return The configured PasswordEncoder instance.
      */
 
-
-    @Autowired
-    private UserDetailsService  userDetailsService ;
     private JwtFilter jwtFilter ;
     private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
@@ -49,33 +53,46 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http.csrf(csrf -> csrf.disable());
+
+        http.cors(customizer -> customizer.configurationSource(corsConfigurationSource())) ;
+
         http.authorizeHttpRequests(request ->
-               request.requestMatchers("/v1/api/auth/login", "/v1/api/status", "/v1/api/user").permitAll()
+               request.requestMatchers("/v1/api/users/register",
+                               "/v1/api/users/status",
+                               "/v1/api/users/login").permitAll()
                         .anyRequest().authenticated()) ;
         http.formLogin(Customizer.withDefaults()) ; // for getting default user form
         http.httpBasic(Customizer.withDefaults()) ; // for postman
+
         http.exceptionHandling(ex -> ex
                         .authenticationEntryPoint(customAuthenticationEntryPoint));
 
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) ;
-        http.addFilterBefore(jwtFilter , UsernamePasswordAuthenticationFilter.class) ;
+        http.addFilterBefore(jwtFilter , BearerTokenAuthenticationFilter.class) ;
+
+//         http.addFilterBefore(customBearerTokenAuthenticationFilter, BearerTokenAuthenticationFilter.class);
+
 
         return http.build();
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider()
-    {
-        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider() ;
-//        daoAuthenticationProvider.setPasswordEncoder(NoOpPasswordEncoder.getInstance());
-        daoAuthenticationProvider.setPasswordEncoder(new BCryptPasswordEncoder());
-        daoAuthenticationProvider.setUserDetailsService(userDetailsService);
-        return daoAuthenticationProvider ;
-
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
+    protected SessionAuthenticationStrategy sessionAuthenticationStrategy() {
+        return new RegisterSessionAuthenticationStrategy(new SessionRegistryImpl());
+    }
+
+    private CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("*"));
+        configuration.setAllowedMethods(List.of("*"));
+        configuration.setAllowedHeaders(List.of("*"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

@@ -1,7 +1,12 @@
-package com.showstream.userservice.exception;
+package com.showstream.userservice.exception.handler;
 
 
+import com.showstream.userservice.dto.CustomError;
 import com.showstream.userservice.dto.ErrorResponse;
+import com.showstream.userservice.exception.PasswordNotValidException;
+import com.showstream.userservice.exception.RoleNotFoundException;
+import com.showstream.userservice.exception.UserAlreadyExistsException;
+import com.showstream.userservice.exception.UserNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -98,4 +103,27 @@ public class GlobalException {
         );
         return new ResponseEntity<>(errorResponse, status);
     }
+
+        @ExceptionHandler(UserNotFoundException.class)
+        protected ResponseEntity<Object> handleUserNotFoundException(final UserNotFoundException ex) {
+            CustomError customError = CustomError.builder()
+                    .httpStatus(HttpStatus.NOT_FOUND)
+                    .header(CustomError.Header.API_ERROR.getName())
+                    .message(ex.getMessage())
+                    .build();
+
+            return new ResponseEntity<>(customError, HttpStatus.NOT_FOUND);
+        }
+
+    @ExceptionHandler(PasswordNotValidException.class)
+    protected ResponseEntity<CustomError> handlePasswordNotValidException(final PasswordNotValidException ex) {
+        CustomError customError = CustomError.builder()
+                .httpStatus(HttpStatus.BAD_REQUEST)
+                .header(CustomError.Header.VALIDATION_ERROR.getName())
+                .message(ex.getMessage())
+                .build();
+
+        return new ResponseEntity<>(customError, HttpStatus.BAD_REQUEST);
+    }
+
 }

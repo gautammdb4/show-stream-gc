@@ -1,6 +1,6 @@
 package com.showstream.userservice.dto;
 
-import com.showstream.userservice.util.RoleName;
+import com.showstream.userservice.model.enums.RoleName;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

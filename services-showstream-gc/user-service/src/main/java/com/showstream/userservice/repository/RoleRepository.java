@@ -1,7 +1,7 @@
 package com.showstream.userservice.repository;
 
 import com.showstream.userservice.entity.Role;
-import com.showstream.userservice.util.RoleName;
+import com.showstream.userservice.model.enums.RoleName;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

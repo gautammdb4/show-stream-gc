@@ -1,6 +1,6 @@
 package com.showstream.userservice.entity;
 
-import com.showstream.userservice.util.RoleName;
+import com.showstream.userservice.model.enums.RoleName;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
